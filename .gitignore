@@ -17,4 +17,3 @@ config.py
 # Virtual environment
 venv/
 .idea/
-screens/

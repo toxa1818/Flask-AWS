@@ -49,5 +49,5 @@ Anton Andriienko
 
 ### License
 Copyright © 2023 [Anton Andriienko](https://github.com/toxa1818)
-This project is [MIT](https://github.com/toxa1818/Flask-AWS/LICENSE) licensed
+This project is [MIT](https://github.com/toxa1818/Flask-AWS/blob/main/LICENSE) licensed
 

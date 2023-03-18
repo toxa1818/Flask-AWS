@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Flask
+instance/
+app.cfg
+
+# S3
+config.py
+
+# Virtual environment
+venv/
+.idea/

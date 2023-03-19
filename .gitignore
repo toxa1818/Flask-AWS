@@ -12,7 +12,7 @@ instance/
 app.cfg
 
 # S3
-config.py
+.env
 
 # Virtual environment
 venv/

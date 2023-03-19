@@ -1,8 +1,6 @@
-import os
-from dotenv import load_dotenv
+from decouple import config
 
 
-load_dotenv()
-S3_BUCKET_CREDS = {'key': os.getenv('KEY'),
-                   'secret_key': os.getenv('SECRET_KEY'),
-                   'bucket_name': os.getenv('BUCKET_NAME')}
+S3_BUCKET_CREDS = {'key': config('KEY', default=''),
+                   'secret_key': config('SECRET_KEY', default=''),
+                   'bucket_name': config('BUCKET_NAME', default='')}

@@ -1,15 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for
 from services.s3_service import S3bucket
+import logging
+from logging.config import fileConfig
 
 
 app = Flask(__name__)
 client = S3bucket()
+logging.config.fileConfig(fname='logs/logging.conf')
+logger = logging.getLogger('app')
 
 
 @app.route('/')
 def index():
-    files = client.get_files()
-    return render_template('index.html', files=files)
+    try:
+        logger.info('Successful request to main page')
+        files = client.get_files()
+        return render_template('index.html', files=files)
+    except Exception as e:
+        logger.error(f'Connection error: {str(e)}')
+        raise
 
 
 @app.route('/search', methods=['POST'])

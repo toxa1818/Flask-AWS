@@ -21,18 +21,26 @@ Flask app for interacting with Amazon S3 bucket
 ```shell
 git clone https://github.com/toxa1818/Flask-AWS.git
 ```
-2. install environment and dependencies
+2. create s3 bucket on AWS(use management console or cli)
+3. create IAM-user with permissions to interact with s3 bucket
+4. create file .env and write keys and bucket name in the following format:
+```shell
+KEY='YOUR ACCESS KEY ID'
+SECRET_KEY='YOUR SECRET KEY'
+BUCKET_NAME='YOUR BUCKET NAME'
+```
+5. install environment and dependencies
 ```shell
 cd Flask-AWS/
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-3. run app
+6. run app
 ```shell
 python app.py
 ```
-4. follow the link that will appear in the terminal after starting app
+7. follow the link that will appear in the terminal after starting app
 
 ### How run tests:
 ```shell

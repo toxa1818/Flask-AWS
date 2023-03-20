@@ -1,15 +1,19 @@
 import boto3
+import os
 from flask import Response
-from config import S3_BUCKET_CREDS
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 class S3bucket:
     def __init__(self):
         # S3 bucket configuration
         self.s3 = boto3.client('s3',
-                               aws_access_key_id=S3_BUCKET_CREDS['key'],
-                               aws_secret_access_key=S3_BUCKET_CREDS['secret_key'])
-        self.bucket_name = S3_BUCKET_CREDS['bucket_name']
+                               aws_access_key_id=os.environ.get('KEY'),
+                               aws_secret_access_key=os.environ.get('SECRET_KEY'))
+        self.bucket_name = os.environ.get('BUCKET_NAME')
 
     # Get all files from S3 bucket
     def get_files(self):
@@ -36,9 +40,9 @@ class S3bucket:
     # Download file from S3 bucket
     def download(self, filename):
         s3_resource = boto3.resource('s3',
-                                     aws_access_key_id=S3_BUCKET_CREDS['key'],
-                                     aws_secret_access_key=S3_BUCKET_CREDS['secret_key'])
-        file_obj = s3_resource.Object(S3_BUCKET_CREDS['bucket_name'], filename).get()
+                                     aws_access_key_id=os.environ.get('KEY'),
+                                     aws_secret_access_key=os.environ.get('SECRET_KEY'))
+        file_obj = s3_resource.Object(os.environ.get('BUCKET_NAME'), filename).get()
         return Response(
             file_obj['Body'].read(),
             mimetype='text/plain',

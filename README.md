@@ -14,7 +14,7 @@ Flask app for interacting with Amazon S3 bucket
 * search files in bucket
 * download file from bucket
 
-![Alt text](./screens/example.png?raw=true "Optional Title")
+![Alt text](./screens/screen_shot.png?raw=true "Optional Title")
 
 ### How to run project:
 1. clone repository from github

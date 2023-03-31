@@ -1,15 +1,10 @@
 import boto3
 import os
-import logging
-from logging.config import fileConfig
 from flask import Response
 from dotenv import load_dotenv
-from botocore.exceptions import ClientError, EndpointConnectionError
 
 
 load_dotenv()
-logging.config.fileConfig(fname='logs/logging.conf')
-logger = logging.getLogger('s3service')
 
 
 class S3bucket:
@@ -22,57 +17,81 @@ class S3bucket:
 
     # Get all files from S3 bucket
     def get_files(self):
-        try:
-            files = []
-            response = self.s3.list_objects_v2(Bucket=self.bucket_name)
-            if response.get('Contents'):
-                for obj in response['Contents']:
-                    files.append({'key': obj['Key'], 'size': obj['Size']})
-            logger.info(f'Get all files from S3 bucket {self.bucket_name}')
-            return files
-        except Exception as e:
-            logger.error(f'Error in getting files from S3 bucket {self.bucket_name}: {str(e)}')
-            raise
+        files = []
+        response = self.s3.list_objects_v2(Bucket=self.bucket_name, Delimiter='/')
+        if response.get('Contents'):
+            for obj in response['Contents']:
+                obj_type = os.path.splitext(obj['Key'])[1].lstrip('.')
+                files.append({'key': obj['Key'], 'size': obj['Size'], 'type': obj_type})
+        if response.get('CommonPrefixes'):
+            for prefix in response['CommonPrefixes']:
+                files.append({'key': prefix['Prefix'].rstrip('/'), 'size': '-', 'type': 'folder'})
+        return files
+
+    # Get files in folder
+    def get_files_in_folder(self, folder_path=''):
+        files = []
+        response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=f'{folder_path}/', Delimiter='/')
+        if response.get('Contents'):
+            for obj in response['Contents']:
+                if obj['Key'] != f'{folder_path}/':
+                    filename = os.path.basename(obj['Key'])
+                    extension = os.path.splitext(obj['Key'])[1].lstrip('.')
+                    obj_type = extension if extension else 'folder'
+                    files.append({'key': filename, 'size': obj['Size'], 'type': obj_type})
+        if response.get('CommonPrefixes'):
+            for prefix in response['CommonPrefixes']:
+                subfolder_path = prefix['Prefix'].rstrip('/')
+                files.append({'key': subfolder_path, 'size': '-', 'type': 'folder'})
+        return files
+
+    # Create folder in S3 bucket
+    def create_folder(self, folder_name, folder_path=''):
+        if folder_path:
+            key = f'{folder_path}/{folder_name}/'
+        else:
+            key = f'{folder_name}/'
+        self.s3.put_object(Bucket=self.bucket_name, Key=key)
 
     # Upload file to S3 bucket
-    def upload_file(self, file):
-        try:
-            self.s3.upload_fileobj(file.stream, self.bucket_name, file.filename)
-            logger.info(f'File {file.filename} was uploaded to S3 bucket')
-        except ClientError as e:
-            logger.error(f'Error uploading file to bucket: {str(e)}')
-            raise
-        except EndpointConnectionError as e:
-            logger.error(f'Unable to connect to bucket endpoint: {str(e)}')
-            raise
+    def upload_file(self, file, folder_path=''):
+        if folder_path:
+            key = f'{folder_path}/{file.filename}'
+        else:
+            key = file.filename
+        self.s3.upload_fileobj(file.stream, self.bucket_name, key)
 
     # Search file in S3 bucket
-    def search_files(self, query):
-        try:
-            files = []
-            response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=query)
-            if response.get('Contents'):
-                for obj in response['Contents']:
-                    files.append({'key': obj['Key'], 'size': obj['Size']})
-            logger.info(f"Search files with prefix '{query}' in bucket: {files}")
-            return files
-        except Exception as e:
-            logger.error(f"Error in searching files: {str(e)}")
-            raise
+    def search_files(self, query, folder_path=''):
+        if folder_path:
+            prefix = f'{folder_path}/{query}'
+        else:
+            prefix = query
+        files = []
+        response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix, Delimiter='/')
+        for obj in response.get('Contents', []):
+            filename = os.path.basename(obj['Key'])
+            extension = os.path.splitext(obj['Key'])[1].lstrip('.')
+            obj_type = extension if extension else 'folder'
+            if obj_type != 'folder':
+                files.append({'key': filename, 'size': obj['Size'], 'type': obj_type})
+        for obj in response.get('CommonPrefixes', []):
+            folder = obj['Prefix'].split('/')[-2]
+            files.append({'key': folder, 'size': '-', 'type': 'folder'})
+        return files
 
     # Download file from S3 bucket
-    def download(self, filename):
-        try:
-            s3_resource = boto3.resource('s3',
-                                         aws_access_key_id=os.environ.get('KEY'),
-                                         aws_secret_access_key=os.environ.get('SECRET_KEY'))
-            file_obj = s3_resource.Object(os.environ.get('BUCKET_NAME'), filename).get()
-            logger.info(f"Download file {filename} from bucket")
-            return Response(
-                file_obj['Body'].read(),
-                mimetype='text/plain',
-                headers={"Content-Disposition": f"attachment;filename={filename}"}
-            )
-        except Exception as e:
-            logger.error(f'Error in downloading file {filename} from bucket: {str(e)}')
-            raise
+    def download(self, file_name):
+        s3_resource = boto3.resource('s3',
+                                     aws_access_key_id=os.environ.get('KEY'),
+                                     aws_secret_access_key=os.environ.get('SECRET_KEY'))
+        paginator = self.s3.get_paginator('list_objects_v2')
+        key = None
+        for result in paginator.paginate(Bucket=self.bucket_name):
+            for item in result.get('Contents', []):
+                if item['Key'].endswith(file_name):
+                    key = item['Key']
+        file_obj = s3_resource.Object(self.bucket_name, key).get()
+        return Response(file_obj['Body'].read(),
+                        mimetype='text/plain',
+                        headers={"Content-Disposition": f"attachment;filename={key}"})

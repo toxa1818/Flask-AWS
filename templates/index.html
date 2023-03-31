@@ -1,63 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>S3 Files</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-         table {
-            border-collapse: collapse;
-            width: 100%;
-        }
+{% extends 'base.html' %}
 
-        th, td {
-            text-align: left;
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
+{% block title %}
+    Main page
+{% endblock %}
 
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .upload-button {
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Size</th>
-            <th>Download ref</th>
-        </tr>
-        {% for file in files %}
-        <tr>
-            <td>{{ file.key }}</td>
-            <td>{{ file.size }}</td>
-            <td><a href="{{ url_for('download', filename=file.key) }}" download="{{ file.key }}">Download</a></td>
-        </tr>
-        {% endfor %}
-    </table>
-    <br><br>
-    <form action="{{ url_for('search') }}" method="POST">
-        <label for="search-input">Search files by name:</label>
-        <input id="search-input" type="text" name="query">
-        <button type="submit">Search</button>
-    </form>
-    <br>
-    <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
-        <div class="upload-button">
-            <label for="file-input">Add file</label>
-            <input id="file-input" type="file" name="file" multiple>
-            <button type="submit">Submit</button>
-        </div>
-    </form>
-</body>
-</html>
+{% block content %}
+    <div class="container">
+        <h3>AWS Usage</h3>
+    </div>
+    <div class="container">
+        <p>This is simple example for interacting with specific S3 bucket, managing of EC2 Instances
+        and monitoring usage of this services in Cloud Watch. </p>
+    </div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    EC2 Instances
+{% endblock %}
+
+{% block style %}
+     table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    th {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .upload-button {
+        margin-top: 20px;
+    }
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h4>EC2 Instances:</h4>
+    </div>
+    <br>
+    <div class="container">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>State</th>
+                <th>Actions</th>
+<!--                <th>Connect ref</th>-->
+            </tr>
+            {% for instance in instances %}
+                <tr>
+                    <td>{{ instance.tags[1].Value }}</td>
+                    <td>{{ instance.id }}</td>
+                    <td>{{ instance.state.Name }}</td>
+                    {% if instance.state.Name == 'stopped' %}
+                        <td>
+                          <a href="/ec2_service/instance_action?action=start&instance_id={{ instance.id }}">Start</a> |
+                          <a href="/ec2_service/instance_action?action=terminate&instance_id={{ instance.id }}">Terminate</a> |
+                        </td>
+<!--                        <td>-//-</td>-->
+                    {% elif instance.state.Name == 'running' %}
+                        <td>
+                          <a href="/ec2_service/instance_action?action=stop&instance_id={{ instance.id }}">Stop</a> |
+                          <a href="/ec2_service/instance_action?action=reboot&instance_id={{ instance.id }}">Reboot</a> |
+                          <a href="/ec2_service/instance_action?action=terminate&instance_id={{ instance.id }}">Terminate</a> |
+                        </td>
+<!--                        <td><a href="/ec2_service/connect_to_instance/{{ instance.id }}">Connect</a></td>-->
+                    {% else %}
+                        <td>-//-</td>
+<!--                        <td>-//-</td>-->
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <br><br>
+    <div class="container">
+        <form action="{{ url_for('ec2_routes.create_instance') }}" method="POST">
+            <label for="instance_name">Enter instance name:</label>
+            <input type="text" class="form-control" id="instance_name" name="instance_name">
+            <button type="submit" class="btn btn-primary" id="create-folder-btn" disabled>Create instance</button>
+        </form>
+    </div>
+    <script>
+        const folderNameInput = document.getElementById('instance_name');
+        const createFolderBtn = document.getElementById('create-folder-btn');
+        folderNameInput.addEventListener('input', () => {
+            if (folderNameInput.value.trim() !== '') {
+              createFolderBtn.removeAttribute('disabled');
+            } else {
+              createFolderBtn.setAttribute('disabled', true);
+            }
+          });
+    </script>
+{% endblock %}

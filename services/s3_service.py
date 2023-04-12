@@ -94,4 +94,4 @@ class S3bucket:
         file_obj = s3_resource.Object(self.bucket_name, key).get()
         return Response(file_obj['Body'].read(),
                         mimetype='text/plain',
-                        headers={"Content-Disposition": f"attachment;filename={key}"})
+                        headers={"Content-Disposition": f"attachment;filename={file_name}"})

@@ -11,8 +11,9 @@ build/
 instance/
 app.cfg
 
-# S3
+# AWS
 .env
+*.pem
 
 # Virtual environment
 venv/
